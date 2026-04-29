@@ -1,0 +1,18 @@
+{
+  "$schema_note": "Cross-language contract fixture. Python (pytest), C# (xUnit) and TypeScript (vitest) MUST load this file and produce identical results for every case. Fixture shape is stable within one schema_version; bumping schema_version requires updating all three runners in the same PR.",
+  "schema_version": 1,
+  "contract_revision": "v0",
+  "example_case_shape": {
+    "name": "descriptive kebab-case id",
+    "description": "one-line human summary",
+    "input": "any JSON value the port accepts",
+    "expected_output": "any JSON value the port returns, or null if expected_error is set",
+    "expected_error": {
+      "code": "STABLE_SCREAMING_SNAKE_CASE code from CONTRACT.md error taxonomy",
+      "message_contains": "optional substring match; null to skip"
+    },
+    "tags": ["happy-path", "edge-case", "security"],
+    "skip_languages": []
+  },
+  "cases": []
+}

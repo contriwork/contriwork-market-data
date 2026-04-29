@@ -1,0 +1,109 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: python
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2 — verified
+      - uses: astral-sh/setup-uv@887a942a15af3a7626099df99e897a18d9e5ab3a # v5.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: python/uv.lock
+      - run: uv python install 3.13
+      - run: uv sync --frozen --all-extras
+        continue-on-error: true
+      - run: uv sync --all-extras
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy src
+      - run: uv run pytest -q
+      - run: uv build
+
+  csharp:
+    name: csharp
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: csharp
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2 — verified
+      - uses: actions/setup-dotnet@87b7050bc53ea08284295505d98d2aa94301e852 # v4.2.0
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet restore
+      - run: dotnet format --verify-no-changes --no-restore
+      - run: dotnet build --no-restore -c Release
+      - run: dotnet test --no-build -c Release --logger "trx;LogFileName=test.trx"
+      - run: dotnet pack --no-build -c Release -o ./artifacts
+
+  typescript:
+    name: typescript
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2 — verified
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+        with:
+          version: 9
+          run_install: false
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  contract:
+    name: contract
+    needs: [python, csharp, typescript]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@887a942a15af3a7626099df99e897a18d9e5ab3a # v5.1.0
+      - uses: actions/setup-dotnet@87b7050bc53ea08284295505d98d2aa94301e852 # v4.2.0
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+        with:
+          version: 9
+
+      - name: contract tests (python)
+        working-directory: python
+        run: |
+          uv sync --all-extras
+          uv run pytest tests/test_contract.py -q
+        continue-on-error: false
+
+      - name: contract tests (csharp)
+        working-directory: csharp
+        run: |
+          dotnet test --filter "FullyQualifiedName~Contract" -c Release --logger "trx;LogFileName=contract.trx"
+
+      - name: contract tests (typescript)
+        working-directory: typescript
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec vitest run tests/contract.test.ts

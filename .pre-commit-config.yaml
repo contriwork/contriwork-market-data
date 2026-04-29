@@ -1,0 +1,62 @@
+minimum_pre_commit_version: "3.5.0"
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-case-conflict
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+        files: ^python/
+      - id: ruff-format
+        files: ^python/
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        files: ^python/src/
+        args: ["--strict", "--ignore-missing-imports"]
+        additional_dependencies: []
+
+  - repo: local
+    hooks:
+      - id: dotnet-format
+        name: dotnet format
+        entry: bash -c 'cd csharp && dotnet format --verify-no-changes --no-restore'
+        language: system
+        files: ^csharp/.*\.(cs|csproj|sln|props)$
+        pass_filenames: false
+
+      - id: eslint
+        name: eslint
+        entry: bash -c 'cd typescript && pnpm exec eslint . --max-warnings=0'
+        language: system
+        files: ^typescript/.*\.(ts|tsx|js|cjs|mjs)$
+        pass_filenames: false
+
+      - id: tsc-strict
+        name: tsc --noEmit
+        entry: bash -c 'cd typescript && pnpm exec tsc --noEmit'
+        language: system
+        files: ^typescript/.*\.(ts|tsx)$
+        pass_filenames: false

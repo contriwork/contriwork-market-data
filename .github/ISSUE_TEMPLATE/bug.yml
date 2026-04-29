@@ -1,0 +1,67 @@
+name: Bug report
+description: Report a defect in a released version.
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. Security issues do NOT belong here — see `SECURITY.md`.
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      description: Which registry did you install from?
+      options:
+        - Python (PyPI)
+        - C# (NuGet)
+        - npm
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps
+      description: Minimal steps to reproduce. Include a code snippet if possible.
+      placeholder: |
+        1. Install the package
+        2. Run the following code
+        3. Observe the result
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include full error output / stack trace if applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: |
+        - OS:
+        - Python / .NET / Node version:
+        - Installed via:
+    validations:
+      required: true

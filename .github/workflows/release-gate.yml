@@ -1,0 +1,72 @@
+name: release-gate
+
+# Runs after each of release-python / release-dotnet / release-npm completes.
+# It does NOT check out the repository — this workflow runs in a privileged
+# context on workflow_run, so running untrusted code from the checked-out ref
+# would be a "pwn request" vector
+# (https://securitylab.github.com/research/github-actions-preventing-pwn-requests/).
+# All work is done via the GitHub API through gh CLI.
+
+on:
+  workflow_run:
+    workflows: [release-python, release-dotnet, release-npm]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  gate:
+    name: all-or-nothing gate
+    runs-on: ubuntu-latest
+    # Only act on tag pushes (v*.*.*). workflow_run.head_branch for a tag push
+    # is the tag name, so it must start with 'v'.
+    if: >-
+      github.event.workflow_run.event == 'push' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    steps:
+      - name: evaluate sibling release runs for this tag
+        id: evaluate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          fail=0
+          pending=0
+          for wf in release-python.yml release-dotnet.yml release-npm.yml; do
+            status=$(gh run list --workflow "$wf" --commit "$HEAD_SHA" --limit 1 --json status,conclusion --jq '.[0]')
+            if [ -z "$status" ]; then
+              echo "$wf: no run found"
+              pending=$((pending+1))
+              continue
+            fi
+            conclusion=$(echo "$status" | jq -r '.conclusion // "pending"')
+            echo "$wf: $conclusion"
+            case "$conclusion" in
+              success) ;;
+              pending|"") pending=$((pending+1));;
+              *) fail=$((fail+1));;
+            esac
+          done
+          if [ "$pending" -gt 0 ]; then
+            echo "result=pending" >> "$GITHUB_OUTPUT"
+          elif [ "$fail" -gt 0 ]; then
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=success" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: mark release failed
+        if: steps.evaluate.outputs.result == 'failed'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+          gh release edit "$TAG" --prerelease --notes "Release FAILED — one or more publish jobs did not succeed. Downstream consumers MUST NOT adopt this tag. See TEMPLATE_USAGE.md §12 for the rollback procedure."
+          echo "::error::release $TAG marked failed — at least one of PyPI/NuGet/npm did not publish"
+          exit 1

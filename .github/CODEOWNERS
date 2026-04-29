@@ -1,0 +1,13 @@
+# Each line is a file pattern followed by one or more owners.
+# These owners will be the default owners for everything in the repo.
+# Later matches take precedence.
+
+*                           @LysanderM @contriworkdev
+
+# Security-sensitive surfaces: require both reviewers.
+/SECURITY.md                @LysanderM @contriworkdev
+/.github/workflows/         @LysanderM @contriworkdev
+/**/Dockerfile              @LysanderM @contriworkdev
+/CONTRACT.md                @LysanderM @contriworkdev
+/VERSION                    @LysanderM @contriworkdev
+/VERSION_MATRIX.md          @LysanderM @contriworkdev

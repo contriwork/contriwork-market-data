@@ -1,0 +1,46 @@
+# macOS / editors
+.DS_Store
+**/.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+
+# Node
+node_modules/
+.next/
+coverage/
+*.tsbuildinfo
+.npm/
+.pnpm-store/
+
+# Secrets / env
+.env
+.env.*
+!.env.example

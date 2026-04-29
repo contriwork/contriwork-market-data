@@ -1,0 +1,69 @@
+name: release-npm
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+concurrency:
+  group: release-npm-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    name: build + publish to npm
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@contriwork/PACKAGE_NAME
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: verify VERSION matches tag
+        run: |
+          VERSION=$(tr -d '[:space:]' < ../VERSION)
+          TAG="${GITHUB_REF#refs/tags/v}"
+          if [ "$VERSION" != "$TAG" ]; then
+            echo "::error::VERSION ($VERSION) does not match tag ($TAG)"
+            exit 1
+          fi
+          echo "PKG_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+        with:
+          version: 9
+          run_install: false
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+      - name: set package version
+        run: npm version "${{ env.PKG_VERSION }}" --no-git-tag-version --allow-same-version
+
+      - name: publish to npm with provenance
+        # Hybrid auth (template default — see docs/REGISTRY_BOOTSTRAP.md §3):
+        #   Registry auth: NPM_TOKEN secret (org-scoped Automation token)
+        #   Provenance:    GitHub Actions OIDC id-token signs on sigstore
+        # If npm Trusted Publisher rolls out for your org, register it
+        # (TEMPLATE_USAGE.md §8 / docs/REGISTRY_BOOTSTRAP.md §3 Yol A) and
+        # delete the `env:` block below — OIDC alone handles auth.
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

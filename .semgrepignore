@@ -1,0 +1,4 @@
+# Development tooling, not shipped source.
+# The release driver embeds Python heredocs inside bash which triggers
+# Semgrep --strict parse errors (exit 3) despite no findings.
+scripts/

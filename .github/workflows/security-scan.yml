@@ -1,0 +1,273 @@
+name: security-scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '17 3 * * 1'
+
+concurrency:
+  group: security-scan-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  gitleaks:
+    # The gitleaks BINARY is MIT-licensed and free for any use. Only the
+    # gitleaks/gitleaks-action wrapper requires a paid license for GitHub
+    # organizations. Install the binary directly with a SHA-verified download
+    # so we run the same detection engine without the commercial license gate.
+    name: gitleaks
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: 8.21.2
+      # sha256 for gitleaks_8.21.2_linux_x64.tar.gz from the upstream checksums.txt
+      GITLEAKS_SHA256: 5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks (SHA256-verified)
+        run: |
+          set -euo pipefail
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL "$url" -o /tmp/gitleaks.tar.gz
+          echo "${GITLEAKS_SHA256}  /tmp/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+      - name: Run gitleaks
+        run: gitleaks detect --source . --redact --verbose --exit-code 1
+
+  hadolint:
+    name: hadolint (Dockerfiles)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dockerfile:
+          - python/Dockerfile
+          - csharp/Dockerfile
+          - typescript/Dockerfile
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: hadolint/hadolint-action@54c9adbab1582c2ef04b2016b760714a4bfde3cf # v3.1.0
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+          failure-threshold: warning
+
+  trivy-fs:
+    name: trivy (filesystem)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          scan-type: fs
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+
+  grype:
+    name: grype
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: anchore/scan-action@abae793926ec39a78ab18002bc7fc45bbbd94342 # v6.0.0
+        with:
+          path: .
+          severity-cutoff: high
+          fail-build: true
+
+  codeql:
+    # Always runs; inner steps decide whether the full analysis proceeds
+    # based on whether code scanning is reachable (GHAS for private repos,
+    # free for public repos). Job-level skip would make this check non-
+    # deterministic for required-status-checks rulesets, so we handle it
+    # inline and always exit 0 green.
+    name: codeql
+    runs-on: ubuntu-latest
+    env:
+      # Force full-database analysis instead of pr-diff-range. On PR events
+      # actions/checkout materializes only the merge ref (refs/pull/.../merge)
+      # and does NOT set up origin/main as a remote-tracking ref, so CodeQL's
+      # diff-informed query logic fails with "error processing shallow info: 4"
+      # when it tries `git fetch origin main`. fetch-depth: 0 does not fix this
+      # because the branch ref itself is absent, not just shallow. Full-DB is
+      # deterministic and only marginally slower on scaffold-sized packages.
+      CODEQL_ACTION_DIFF_INFORMED_QUERIES: 'false'
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: python
+            build-mode: none
+          - language: csharp
+            build-mode: manual
+          - language: javascript-typescript
+            build-mode: none
+    steps:
+      - name: Determine whether code scanning can run
+        id: gate
+        env:
+          VISIBILITY: ${{ github.event.repository.visibility }}
+        run: |
+          set -euo pipefail
+          if [ "$VISIBILITY" = "public" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=CodeQL inactive::CodeQL code scanning requires GitHub Advanced Security (GHAS). GHAS is free on public repositories and paid on private ones. This run performed the job end-to-end but did not upload SARIF. Make this repository public (or enable GHAS) to activate the scan."
+          fi
+
+      - name: Checkout
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up .NET SDK (for C# build)
+        if: steps.gate.outputs.run == 'true' && matrix.language == 'csharp'
+        uses: actions/setup-dotnet@87b7050bc53ea08284295505d98d2aa94301e852 # v4.2.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Initialize CodeQL
+        if: steps.gate.outputs.run == 'true'
+        uses: github/codeql-action/init@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-and-quality
+
+      - name: Build C# (manual build-mode — CodeQL observes the compilation)
+        if: steps.gate.outputs.run == 'true' && matrix.language == 'csharp'
+        working-directory: csharp
+        run: |
+          dotnet restore
+          dotnet build --no-restore -c Release
+
+      - name: Perform CodeQL Analysis
+        if: steps.gate.outputs.run == 'true'
+        uses: github/codeql-action/analyze@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  semgrep:
+    # Install semgrep directly from PyPI with a pinned version so we control
+    # the full dependency chain (the official semgrep/semgrep-action wraps a
+    # mutable docker tag). Dependabot's pip ecosystem watches the version.
+    name: semgrep
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: '3.13'
+      - name: Install semgrep
+        run: pip install --disable-pip-version-check semgrep==1.160.0
+      - name: Run semgrep
+        # semgrep scan (not ci) supports --error and --strict; the ci
+        # subcommand is intended for Semgrep AppSec Platform integration.
+        run: |
+          semgrep scan \
+            --config=p/owasp-top-ten \
+            --config=p/security-audit \
+            --config=p/secrets \
+            --error \
+            --strict
+
+  deps-python:
+    name: deps (python / pip-audit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@887a942a15af3a7626099df99e897a18d9e5ab3a # v5.1.0
+      - name: Export resolved dependency requirements
+        # Audit only resolved deps from the lockfile; the local project itself
+        # is the root package and is excluded from the export. This avoids
+        # pip-audit trying to look up an unpublished local distribution.
+        run: uv export --no-hashes --no-emit-project --format requirements-txt --output-file /tmp/requirements.txt
+      - name: pip-audit on lockfile
+        run: uv run --with pip-audit pip-audit --strict --requirement /tmp/requirements.txt
+
+  deps-dotnet:
+    name: deps (dotnet list --vulnerable)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: csharp
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-dotnet@87b7050bc53ea08284295505d98d2aa94301e852 # v4.2.0
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet restore
+      - name: list vulnerable packages
+        run: |
+          set -euo pipefail
+          out=$(dotnet list package --vulnerable --include-transitive 2>&1)
+          echo "$out"
+          if echo "$out" | grep -q "has the following vulnerable packages"; then
+            exit 1
+          fi
+
+  deps-npm:
+    name: deps (pnpm audit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+        with:
+          version: 9
+          run_install: false
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --audit-level=high
+
+  sbom:
+    # SBOMs are generated on EVERY push and stored as workflow artifacts so
+    # every commit has a recoverable dependency graph. On release tags they
+    # are additionally attached to the GitHub Release for downstream
+    # consumers. The job never skips — it always produces an artifact.
+    name: SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [python, csharp, typescript]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Generate CycloneDX SBOM for ${{ matrix.target }}
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: ./${{ matrix.target }}
+          format: cyclonedx-json
+          artifact-name: sbom-${{ matrix.target }}.cdx.json
+          output-file: sbom-${{ matrix.target }}.cdx.json
+
+      - name: Attach SBOM to GitHub Release (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+        with:
+          files: sbom-${{ matrix.target }}.cdx.json

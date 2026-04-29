@@ -1,0 +1,57 @@
+name: Feature request
+description: Propose a change to the public API or behavior.
+title: "[feature] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Public-behavior changes require a `CONTRACT.md` update and all three language implementations in lockstep. See `CONTRIBUTING.md` before opening a PR.
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What are you trying to do that the current API does not support?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-api
+    attributes:
+      label: Proposed API change
+      description: Sketch the new / modified port method signature and behavior.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: languages
+    attributes:
+      label: Languages affected
+      options:
+        - label: Python
+        - label: C#
+        - label: TypeScript
+    validations:
+      required: true
+
+  - type: dropdown
+    id: contract-impact
+    attributes:
+      label: Contract impact
+      description: Does this change the port / public behavior?
+      options:
+        - "Yes — CONTRACT.md revision bump required"
+        - "No — internal only"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Breaking change
+      options:
+        - "No"
+        - "Yes — major version bump"
+    validations:
+      required: true

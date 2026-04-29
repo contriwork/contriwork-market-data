@@ -1,0 +1,54 @@
+name: release-python
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+concurrency:
+  group: release-python-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    name: build + publish to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/contriwork-PACKAGE_NAME/
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: verify VERSION matches tag
+        run: |
+          VERSION=$(tr -d '[:space:]' < ../VERSION)
+          TAG="${GITHUB_REF#refs/tags/v}"
+          if [ "$VERSION" != "$TAG" ]; then
+            echo "::error::VERSION ($VERSION) does not match tag ($TAG)"
+            exit 1
+          fi
+
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: python/uv.lock
+
+      - run: uv python install 3.13
+      - run: uv sync --frozen --all-extras
+      - run: uv run pytest -q
+      - run: uv build
+
+      - name: publish to PyPI (OIDC)
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
+        with:
+          packages-dir: python/dist/
+          attestations: true

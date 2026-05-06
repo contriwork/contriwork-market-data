@@ -3,7 +3,7 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "contriwork-PACKAGE_NAME"
+name = "contriwork-market-data"
 description = "TODO: one-line description of the package."
 readme = "README.md"
 requires-python = ">=3.13"
@@ -25,10 +25,10 @@ dynamic = ["version"]
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/contriwork/contriwork-PACKAGE_NAME"
-Repository = "https://github.com/contriwork/contriwork-PACKAGE_NAME"
-Issues = "https://github.com/contriwork/contriwork-PACKAGE_NAME/issues"
-Changelog = "https://github.com/contriwork/contriwork-PACKAGE_NAME/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/contriwork/contriwork-market-data"
+Repository = "https://github.com/contriwork/contriwork-market-data"
+Issues = "https://github.com/contriwork/contriwork-market-data/issues"
+Changelog = "https://github.com/contriwork/contriwork-market-data/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
@@ -44,7 +44,7 @@ path = "../VERSION"
 pattern = "^(?P<version>[0-9]+\\.[0-9]+\\.[0-9]+)"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/contriwork_PACKAGE_NAME"]
+packages = ["src/contriwork_market_data"]
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -75,15 +75,11 @@ ignore = ["S101"]       # allow assert in tests
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S", "N"]
-# Placeholder module path contains uppercase `PACKAGE_NAME`; consumers of the
-# template replace this with a lowercase identifier (TEMPLATE_USAGE.md §2),
-# at which point the path stops matching this glob and N999 applies normally.
-"src/contriwork_PACKAGE_NAME/**/*.py" = ["N999"]
 
 [tool.mypy]
 python_version = "3.13"
 strict = true
-packages = ["contriwork_PACKAGE_NAME"]
+packages = ["contriwork_market_data"]
 mypy_path = "src"
 warn_unreachable = true
 warn_return_any = true

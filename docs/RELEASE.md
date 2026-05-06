@@ -16,7 +16,7 @@ There is no cross-language atomic transaction. If one publish fails, the other t
 - Git signing configured — this repo uses signed tags (`git tag -s`).
 - Registry trust policies in place:
   - **PyPI**: OIDC trusted publisher for `pypa/gh-action-pypi-publish` on this repo.
-  - **NuGet**: Active trust policy scoped to `Repository: contriwork-PACKAGE_NAME` on the `ContriWork` account. The account name is **case-sensitive** on trust-policy lookup.
+  - **NuGet**: Active trust policy scoped to `Repository: contriwork-market-data` on the `ContriWork` account. The account name is **case-sensitive** on trust-policy lookup.
   - **npm**: GitHub Actions OIDC → publish with provenance.
 
 ## Happy path: `./scripts/release.sh`
@@ -68,8 +68,8 @@ Edit `CHANGELOG.md`: insert after `## [Unreleased]`:
 Update compare links at bottom:
 
 ```markdown
-[Unreleased]: https://github.com/contriwork/contriwork-PACKAGE_NAME/compare/vX.Y.Z...HEAD
-[X.Y.Z]: https://github.com/contriwork/contriwork-PACKAGE_NAME/compare/v<PREV>...vX.Y.Z
+[Unreleased]: https://github.com/contriwork/contriwork-market-data/compare/vX.Y.Z...HEAD
+[X.Y.Z]: https://github.com/contriwork/contriwork-market-data/compare/v<PREV>...vX.Y.Z
 ```
 
 Add a row to `VERSION_MATRIX.md` matching the previous row's runtime columns.
@@ -80,15 +80,15 @@ Add a row to `VERSION_MATRIX.md` matching the previous row's runtime columns.
 pre-commit run --all-files
 
 cd csharp && dotnet restore && dotnet pack -c Release --no-restore -o /tmp/rel -p:Version=X.Y.Z
-unzip -p /tmp/rel/Contriwork.PackageName.X.Y.Z.nupkg README.md | head -1
-# expect: "# Contriwork.PackageName (.NET)"
+unzip -p /tmp/rel/Contriwork.MarketData.X.Y.Z.nupkg README.md | head -1
+# expect: "# Contriwork.MarketData (.NET)"
 
 cd ../typescript && pnpm install --frozen-lockfile && pnpm build && npm pack --dry-run
 # expect: README.md in file list
 
 cd ../python && rm -rf dist && uv build
-tar -xOzf dist/contriwork_PACKAGE_NAME-X.Y.Z.tar.gz contriwork_PACKAGE_NAME-X.Y.Z/README.md | head -1
-# expect: "# contriwork-PACKAGE_NAME (Python)"
+tar -xOzf dist/contriwork_market_data-X.Y.Z.tar.gz contriwork_market_data-X.Y.Z/README.md | head -1
+# expect: "# contriwork-market-data (Python)"
 ```
 
 ### 3. Branch, PR, merge
@@ -138,13 +138,13 @@ Two causes, check in this order:
 NuGet indexing takes up to 15 min. Check:
 
 ```bash
-curl -s "https://api.nuget.org/v3-flatcontainer/contriwork.packagename/index.json"
+curl -s "https://api.nuget.org/v3-flatcontainer/contriwork.marketdata/index.json"
 ```
 
 If your `release-dotnet` workflow succeeded, the push was accepted — waiting is correct. To verify content before indexing completes, download the nupkg directly once indexed:
 
 ```bash
-curl -sL "https://api.nuget.org/v3-flatcontainer/contriwork.packagename/X.Y.Z/contriwork.packagename.X.Y.Z.nupkg" -o /tmp/pkg.nupkg
+curl -sL "https://api.nuget.org/v3-flatcontainer/contriwork.marketdata/X.Y.Z/contriwork.marketdata.X.Y.Z.nupkg" -o /tmp/pkg.nupkg
 unzip -p /tmp/pkg.nupkg README.md | head -5
 ```
 
@@ -157,7 +157,7 @@ CDN propagation is usually under 60s but can spike to 5 min. `pip install --inde
 npm sometimes lags on surfacing the README field. Verify the tarball itself:
 
 ```bash
-curl -sL "https://registry.npmjs.org/@contriwork/PACKAGE_NAME/-/PACKAGE_NAME-X.Y.Z.tgz" -o /tmp/npm.tgz
+curl -sL "https://registry.npmjs.org/@contriwork/market-data/-/market-data-X.Y.Z.tgz" -o /tmp/npm.tgz
 tar -xOzf /tmp/npm.tgz package/README.md | head -5
 ```
 

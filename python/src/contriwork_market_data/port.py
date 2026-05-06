@@ -6,7 +6,7 @@ from typing import Protocol, runtime_checkable
 
 
 @runtime_checkable
-class PackageNamePort(Protocol):
+class MarketDataPort(Protocol):
     """Placeholder port. Replace with the real contract methods.
 
     Keep method names aligned with C# (`PascalCaseAsync`) and TypeScript

@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: npm
-      url: https://www.npmjs.com/package/@contriwork/PACKAGE_NAME
+      url: https://www.npmjs.com/package/@contriwork/market-data
     permissions:
       id-token: write
       contents: read

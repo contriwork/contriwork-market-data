@@ -3,7 +3,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <RootNamespace>Contriwork.PackageName.Tests</RootNamespace>
+    <RootNamespace>Contriwork.MarketData.Tests</RootNamespace>
     <!-- xUnit idiom uses Given_When_Then method names; CA1707 forbids underscores
          on public API, which does not apply to test methods. -->
     <NoWarn>$(NoWarn);CA1707</NoWarn>
@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Contriwork.PackageName\Contriwork.PackageName.csproj" />
+    <ProjectReference Include="..\..\src\Contriwork.MarketData\Contriwork.MarketData.csproj" />
   </ItemGroup>
 
 </Project>

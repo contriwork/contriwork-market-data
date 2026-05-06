@@ -35,7 +35,7 @@ gh secret set NPM_TOKEN --repo <github-org>/<github-repo>
 
 | Field | Değer |
 |---|---|
-| PyPI Project Name | `<pypi-package-name>` (`pyproject.toml` `[project].name` ile birebir) |
+| PyPI Project Name | `<pypi-market-data>` (`pyproject.toml` `[project].name` ile birebir) |
 | Owner | `<github-org>` |
 | Repository name | `<github-repo>` |
 | Workflow filename | `release-python.yml` |
@@ -157,7 +157,7 @@ PyPI ve NuGet OIDC trusted publishing kullanıyor — token üretmen gerekmez, l
 # release/<version> branch merge edildikten sonra:
 git switch main && git pull --ff-only
 
-git tag -s -m "<package-name> v<X.Y.Z>" v<X.Y.Z>
+git tag -s -m "<market-data> v<X.Y.Z>" v<X.Y.Z>
 git push origin v<X.Y.Z>
 
 # 3 workflow paralel tetiklenir; release-gate all-or-nothing izler.
@@ -175,7 +175,7 @@ gh run rerun <run-id> --repo <github-org>/<github-repo> --failed
 ```bash
 git tag -d v<X.Y.Z>
 git push origin :refs/tags/v<X.Y.Z>
-git tag -s -m "<package-name> v<X.Y.Z>" v<X.Y.Z> <yeni-commit-sha>
+git tag -s -m "<market-data> v<X.Y.Z>" v<X.Y.Z> <yeni-commit-sha>
 git push origin v<X.Y.Z>
 ```
 
@@ -187,7 +187,7 @@ git push origin v<X.Y.Z>
 
 ```bash
 # PyPI — JSON API en hızlısı, pip dry-run da olur
-curl -s "https://pypi.org/pypi/<pypi-package-name>/json" \
+curl -s "https://pypi.org/pypi/<pypi-market-data>/json" \
   | python3 -c "import sys, json; d=json.load(sys.stdin); print(d['info']['version'])"
 
 # NuGet

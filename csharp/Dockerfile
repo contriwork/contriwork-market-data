@@ -8,12 +8,12 @@ WORKDIR /src
 
 COPY VERSION /VERSION
 COPY csharp/Directory.Build.props ./Directory.Build.props
-COPY csharp/Contriwork.PackageName.sln ./
+COPY csharp/Contriwork.MarketData.sln ./
 COPY csharp/src/ ./src/
 COPY csharp/tests/ ./tests/
 
 RUN dotnet restore \
- && dotnet publish src/Contriwork.PackageName/Contriwork.PackageName.csproj \
+ && dotnet publish src/Contriwork.MarketData/Contriwork.MarketData.csproj \
       -c Release \
       -o /out \
       --no-restore \
@@ -37,4 +37,4 @@ USER app
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD ["dotnet", "--info"]
 
-ENTRYPOINT ["dotnet", "Contriwork.PackageName.dll"]
+ENTRYPOINT ["dotnet", "Contriwork.MarketData.dll"]

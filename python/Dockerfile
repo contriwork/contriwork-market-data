@@ -47,6 +47,6 @@ USER 10001:10001
 # Consumer overrides CMD. This image exposes no ports by default.
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD python -c "import contriwork_PACKAGE_NAME; print(contriwork_PACKAGE_NAME.__version__)" || exit 1
+  CMD python -c "import contriwork_market_data; print(contriwork_market_data.__version__)" || exit 1
 
-CMD ["python", "-c", "import contriwork_PACKAGE_NAME; print('ok', contriwork_PACKAGE_NAME.__version__)"]
+CMD ["python", "-c", "import contriwork_market_data; print('ok', contriwork_market_data.__version__)"]

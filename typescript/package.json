@@ -1,17 +1,17 @@
 {
-  "name": "@contriwork/PACKAGE_NAME",
+  "name": "@contriwork/market-data",
   "version": "0.0.0",
   "description": "TODO: one-line description of the package. Mirrors CONTRACT.md.",
   "type": "module",
   "license": "MIT",
   "author": "ContriWork",
-  "homepage": "https://github.com/contriwork/contriwork-PACKAGE_NAME",
+  "homepage": "https://github.com/contriwork/contriwork-market-data",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/contriwork/contriwork-PACKAGE_NAME.git"
+    "url": "git+https://github.com/contriwork/contriwork-market-data.git"
   },
   "bugs": {
-    "url": "https://github.com/contriwork/contriwork-PACKAGE_NAME/issues"
+    "url": "https://github.com/contriwork/contriwork-market-data/issues"
   },
   "keywords": ["contriwork"],
   "engines": {

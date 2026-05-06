@@ -2,8 +2,7 @@
 # hadolint global ignore=DL3008,DL3013
 
 # ---- build stage ----------------------------------------------------------
-# TEMPLATE_USAGE.md §3: replace @sha256:TODO with an actual digest before release.
-FROM python:3.13-slim-trixie@sha256:TODO AS build
+FROM python:3.13-slim-trixie@sha256:a0779d7c12fc20be6ec6b4ddc901a4fd7657b8a6bc9def9d3fde89ed5efe0a3d AS build
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -12,7 +11,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /src
 
-COPY --from=ghcr.io/astral-sh/uv:0.5.11@sha256:TODO /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.5.11@sha256:0ac957607303916420297a4c9c213bb33fbd3c888f9cd7f4f7273596ebf42b85 /uv /usr/local/bin/uv
 
 COPY python/pyproject.toml python/uv.lock* ./
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -24,7 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv build --wheel --out-dir /wheels
 
 # ---- runtime stage --------------------------------------------------------
-FROM python:3.13-slim-trixie@sha256:TODO AS runtime
+FROM python:3.13-slim-trixie@sha256:a0779d7c12fc20be6ec6b4ddc901a4fd7657b8a6bc9def9d3fde89ed5efe0a3d AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

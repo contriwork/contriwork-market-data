@@ -1,7 +1,7 @@
 {
   "name": "@contriwork/market-data",
   "version": "0.0.0",
-  "description": "TODO: one-line description of the package. Mirrors CONTRACT.md.",
+  "description": "Unified market-data port — spot, OHLCV, order book, ticker streaming. 10 adapters: CoinGecko, CoinMarketCap, Binance, Kraken, Coinbase, Alpha Vantage, Finnhub, IEX Cloud, Polygon.io, Tiingo. TTL cache + per-adapter rate limiting + ordered fallback. Cross-language sibling of contriwork-market-data (PyPI) and Contriwork.MarketData (NuGet). YFinance adapter is Python-only.",
   "type": "module",
   "license": "MIT",
   "author": "ContriWork",
@@ -13,7 +13,27 @@
   "bugs": {
     "url": "https://github.com/contriwork/contriwork-market-data/issues"
   },
-  "keywords": ["contriwork"],
+  "keywords": [
+    "market-data",
+    "crypto",
+    "stocks",
+    "ohlcv",
+    "ticker",
+    "order-book",
+    "streaming",
+    "websocket",
+    "coingecko",
+    "coinmarketcap",
+    "binance",
+    "kraken",
+    "coinbase",
+    "alpha-vantage",
+    "finnhub",
+    "iex-cloud",
+    "polygon",
+    "tiingo",
+    "contriwork"
+  ],
   "engines": {
     "node": ">=24"
   },

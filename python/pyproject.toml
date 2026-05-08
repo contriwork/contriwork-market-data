@@ -4,21 +4,31 @@ build-backend = "hatchling.build"
 
 [project]
 name = "contriwork-market-data"
-description = "TODO: one-line description of the package."
+description = "Unified market-data port — spot, OHLCV, order book, ticker streaming. 11 adapters: CoinGecko, CoinMarketCap, Binance, Kraken, Coinbase, Alpha Vantage, Finnhub, IEX Cloud, Polygon.io, Tiingo, YFinance. TTL cache + per-adapter rate limiting + ordered fallback. Cross-language sibling of Contriwork.MarketData (NuGet) and @contriwork/market-data (npm)."
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [
   { name = "ContriWork", email = "maintainers@contriwork.dev" }
 ]
-keywords = ["contriwork"]
+keywords = [
+  "market-data", "crypto", "stocks", "bist", "ohlcv", "ticker",
+  "order-book", "streaming", "websocket",
+  "coingecko", "coinmarketcap", "binance", "kraken", "coinbase",
+  "alpha-vantage", "finnhub", "iex-cloud", "polygon", "tiingo", "yfinance",
+  "contriwork",
+]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
+  "Intended Audience :: Financial and Insurance Industry",
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.13",
+  "Topic :: Office/Business :: Financial :: Investment",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed",
 ]
 dynamic = ["version"]

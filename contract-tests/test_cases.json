@@ -1,18 +1,564 @@
 {
   "$schema_note": "Cross-language contract fixture. Python (pytest), C# (xUnit) and TypeScript (vitest) MUST load this file and produce identical results for every case. Fixture shape is stable within one schema_version; bumping schema_version requires updating all three runners in the same PR.",
   "schema_version": 1,
-  "contract_revision": "v0",
+  "contract_revision": "v1",
   "example_case_shape": {
-    "name": "descriptive kebab-case id",
+    "name": "kebab-case identifier, must be unique within `cases`",
     "description": "one-line human summary",
-    "input": "any JSON value the port accepts",
-    "expected_output": "any JSON value the port returns, or null if expected_error is set",
-    "expected_error": {
-      "code": "STABLE_SCREAMING_SNAKE_CASE code from CONTRACT.md error taxonomy",
-      "message_contains": "optional substring match; null to skip"
+    "setup": {
+      "adapters": [
+        {
+          "id": "stable kebab-case adapter id; runner registers an InMemoryAdapter with this id and the supplied dataset",
+          "data": "object keyed by symbol; values describe what the adapter returns for spot/ohlcv/order_book/ticker",
+          "supports_native_streaming": "optional bool (default false)",
+          "supports_order_book": "optional bool (default true)",
+          "supported_quote_currencies": "optional list[str] or 'ANY' (default 'ANY')",
+          "rate_limit_per_minute": "optional int (default 9999, effectively unlimited)",
+          "fail_modes": "optional list of {symbol, code} entries forcing the adapter to raise the given error code on operations for that symbol"
+        }
+      ],
+      "client_chain": "object: market -> ordered list[adapter_id]",
+      "cache": "optional client cache config (enabled, spot_ttl_s, ohlcv_ttl_s, order_book_ttl_s)",
+      "rate_limit": "optional client rate-limit config (enabled, strategy, max_retry_attempts, initial_backoff_s)",
+      "streaming": "optional streaming config (default_polling_interval_s, max_reconnect_attempts)",
+      "clock": "optional initial epoch_seconds and tick advances (deterministic time injection)"
     },
-    "tags": ["happy-path", "edge-case", "security"],
+    "operation": {
+      "method": "get_spot | get_ohlcv | get_order_book | subscribe_ticker",
+      "args": "object of named arguments per CONTRACT.md §3"
+    },
+    "expected_output": "object describing the type and required field values; null if expected_error is set",
+    "expected_error": {
+      "code": "stable SCREAMING_SNAKE_CASE error code from CONTRACT.md §7",
+      "message_contains": "optional substring; null to skip"
+    },
+    "tags": ["happy-path", "edge-case", "fallback", "cache", "rate-limit", "streaming", "security"],
     "skip_languages": []
   },
-  "cases": []
+  "cases": [
+    {
+      "name": "get-spot-success-from-primary-adapter",
+      "description": "Primary adapter returns immediately; secondary is never queried.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "primary",
+            "data": {"BTCUSDT": {"spot": {"last": "65000.00", "quote_currency": "USDT", "volume_24h": "12345.6"}}}
+          },
+          {"id": "secondary", "data": {}}
+        ],
+        "client_chain": {"crypto": ["primary", "secondary"]}
+      },
+      "operation": {
+        "method": "get_spot",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "quote_currency": "USDT"}
+      },
+      "expected_output": {
+        "type": "SpotPrice",
+        "fields": {
+          "symbol": "BTCUSDT",
+          "last": "65000.00",
+          "quote_currency": "USDT",
+          "source_adapter": "primary"
+        }
+      },
+      "expected_error": null,
+      "tags": ["happy-path", "spot"],
+      "skip_languages": []
+    },
+    {
+      "name": "get-spot-fallback-when-primary-symbol-not-found",
+      "description": "Primary raises SYMBOL_NOT_FOUND; secondary succeeds; client returns secondary's value.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "primary",
+            "data": {},
+            "fail_modes": [{"symbol": "ETHUSDT", "code": "SYMBOL_NOT_FOUND"}]
+          },
+          {
+            "id": "secondary",
+            "data": {"ETHUSDT": {"spot": {"last": "3500.00", "quote_currency": "USDT"}}}
+          }
+        ],
+        "client_chain": {"crypto": ["primary", "secondary"]}
+      },
+      "operation": {
+        "method": "get_spot",
+        "args": {"symbol": "ETHUSDT", "market": "crypto", "quote_currency": "USDT"}
+      },
+      "expected_output": {
+        "type": "SpotPrice",
+        "fields": {"symbol": "ETHUSDT", "last": "3500.00", "source_adapter": "secondary"}
+      },
+      "expected_error": null,
+      "tags": ["fallback", "spot"],
+      "skip_languages": []
+    },
+    {
+      "name": "get-spot-all-adapters-fail-aggregates-causes",
+      "description": "Every adapter in the chain raises; orchestrator raises ALL_ADAPTERS_FAILED with non-empty cause list.",
+      "setup": {
+        "adapters": [
+          {"id": "primary", "data": {}, "fail_modes": [{"symbol": "XRPUSDT", "code": "ADAPTER_UNAVAILABLE"}]},
+          {"id": "secondary", "data": {}, "fail_modes": [{"symbol": "XRPUSDT", "code": "ADAPTER_UNAVAILABLE"}]}
+        ],
+        "client_chain": {"crypto": ["primary", "secondary"]}
+      },
+      "operation": {
+        "method": "get_spot",
+        "args": {"symbol": "XRPUSDT", "market": "crypto", "quote_currency": "USDT"}
+      },
+      "expected_output": null,
+      "expected_error": {"code": "ALL_ADAPTERS_FAILED", "message_contains": null},
+      "tags": ["fallback", "spot", "error"],
+      "skip_languages": []
+    },
+    {
+      "name": "get-spot-no-adapter-for-market",
+      "description": "Caller asks for an unknown market; orchestrator raises NO_ADAPTER_FOR_MARKET without invoking any adapter.",
+      "setup": {
+        "adapters": [{"id": "any", "data": {}}],
+        "client_chain": {"crypto": ["any"]}
+      },
+      "operation": {
+        "method": "get_spot",
+        "args": {"symbol": "AAPL", "market": "stocks_us", "quote_currency": "USD"}
+      },
+      "expected_output": null,
+      "expected_error": {"code": "NO_ADAPTER_FOR_MARKET", "message_contains": "stocks_us"},
+      "tags": ["error", "spot"],
+      "skip_languages": []
+    },
+    {
+      "name": "get-spot-unsupported-quote-currency-raises",
+      "description": "Single-adapter chain whose Capability.supported_quote_currencies excludes the requested currency raises UNSUPPORTED_QUOTE_CURRENCY.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "usd-only",
+            "data": {"AAPL": {"spot": {"last": "200.00", "quote_currency": "USD"}}},
+            "supported_quote_currencies": ["USD"]
+          }
+        ],
+        "client_chain": {"stocks_us": ["usd-only"]}
+      },
+      "operation": {
+        "method": "get_spot",
+        "args": {"symbol": "AAPL", "market": "stocks_us", "quote_currency": "TRY"}
+      },
+      "expected_output": null,
+      "expected_error": {"code": "UNSUPPORTED_QUOTE_CURRENCY", "message_contains": "TRY"},
+      "tags": ["error", "spot", "edge-case"],
+      "skip_languages": []
+    },
+    {
+      "name": "get-spot-cache-hit-returns-cached-value-without-adapter-call",
+      "description": "Two consecutive get_spot calls within spot_ttl_s — second hits the cache and the adapter call counter increments by exactly one.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "p",
+            "data": {"BTCUSDT": {"spot": {"last": "65000", "quote_currency": "USDT"}}}
+          }
+        ],
+        "client_chain": {"crypto": ["p"]},
+        "cache": {"enabled": true, "spot_ttl_s": 5},
+        "clock": {"epoch_seconds": 1714492800}
+      },
+      "operation": {
+        "method": "get_spot",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "quote_currency": "USDT"},
+        "repeat": 2,
+        "advance_clock_between_calls_s": 1
+      },
+      "expected_output": {
+        "type": "SpotPrice",
+        "fields": {"symbol": "BTCUSDT", "source_adapter": "p"},
+        "adapter_call_count": {"p": 1}
+      },
+      "expected_error": null,
+      "tags": ["cache", "spot"],
+      "skip_languages": []
+    },
+    {
+      "name": "get-ohlcv-success-returns-candles-ascending",
+      "description": "Adapter returns 3 candles; orchestrator returns them ordered ascending by timestamp.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "p",
+            "data": {
+              "BTCUSDT": {
+                "ohlcv": {
+                  "M1": [
+                    {"timestamp": "2026-04-30T12:00:00Z", "open": "100", "high": "110", "low": "95", "close": "105", "volume": "1.0"},
+                    {"timestamp": "2026-04-30T12:01:00Z", "open": "105", "high": "115", "low": "100", "close": "112", "volume": "1.2"},
+                    {"timestamp": "2026-04-30T12:02:00Z", "open": "112", "high": "120", "low": "108", "close": "118", "volume": "0.8"}
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "client_chain": {"crypto": ["p"]}
+      },
+      "operation": {
+        "method": "get_ohlcv",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "interval": "M1", "limit": 3}
+      },
+      "expected_output": {
+        "type": "list[Candle]",
+        "length": 3,
+        "ordered_ascending_by": "timestamp"
+      },
+      "expected_error": null,
+      "tags": ["happy-path", "ohlcv"],
+      "skip_languages": []
+    },
+    {
+      "name": "get-ohlcv-invalid-interval-raises",
+      "description": "Adapter does not advertise M5 in supported_intervals; orchestrator raises INVALID_INTERVAL without trying fallback (interval is not adapter-resolvable in chain).",
+      "setup": {
+        "adapters": [
+          {"id": "p", "data": {}, "supported_intervals": ["M1", "H1", "D1"]}
+        ],
+        "client_chain": {"crypto": ["p"]}
+      },
+      "operation": {
+        "method": "get_ohlcv",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "interval": "M5", "limit": 10}
+      },
+      "expected_output": null,
+      "expected_error": {"code": "INVALID_INTERVAL", "message_contains": "M5"},
+      "tags": ["error", "ohlcv", "edge-case"],
+      "skip_languages": []
+    },
+    {
+      "name": "get-ohlcv-limit-cap-enforced",
+      "description": "Caller asks for limit=2000; orchestrator enforces the 1000 contract cap and returns INVALID_INPUT.",
+      "setup": {
+        "adapters": [{"id": "p", "data": {}}],
+        "client_chain": {"crypto": ["p"]}
+      },
+      "operation": {
+        "method": "get_ohlcv",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "interval": "M1", "limit": 2000}
+      },
+      "expected_output": null,
+      "expected_error": {"code": "INVALID_INPUT", "message_contains": "limit"},
+      "tags": ["error", "ohlcv", "validation"],
+      "skip_languages": []
+    },
+    {
+      "name": "get-ohlcv-since-param-filters-older-candles",
+      "description": "Adapter holds 5 candles; caller passes since 3 candles in; result has exactly 2 candles all >= since.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "p",
+            "data": {
+              "BTCUSDT": {
+                "ohlcv": {
+                  "M1": [
+                    {"timestamp": "2026-04-30T12:00:00Z", "open": "100", "high": "101", "low": "99", "close": "100", "volume": "1"},
+                    {"timestamp": "2026-04-30T12:01:00Z", "open": "100", "high": "101", "low": "99", "close": "100", "volume": "1"},
+                    {"timestamp": "2026-04-30T12:02:00Z", "open": "100", "high": "101", "low": "99", "close": "100", "volume": "1"},
+                    {"timestamp": "2026-04-30T12:03:00Z", "open": "100", "high": "101", "low": "99", "close": "100", "volume": "1"},
+                    {"timestamp": "2026-04-30T12:04:00Z", "open": "100", "high": "101", "low": "99", "close": "100", "volume": "1"}
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "client_chain": {"crypto": ["p"]}
+      },
+      "operation": {
+        "method": "get_ohlcv",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "interval": "M1", "since": "2026-04-30T12:03:00Z", "limit": 100}
+      },
+      "expected_output": {
+        "type": "list[Candle]",
+        "length": 2,
+        "all_timestamps_at_or_after": "2026-04-30T12:03:00Z"
+      },
+      "expected_error": null,
+      "tags": ["happy-path", "ohlcv"],
+      "skip_languages": []
+    },
+    {
+      "name": "get-order-book-success-returns-sorted",
+      "description": "Adapter returns an order book; bids descending by price, asks ascending; depth respected.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "p",
+            "data": {
+              "BTCUSDT": {
+                "order_book": {
+                  "bids": [["64999", "1.0"], ["64998", "2.0"], ["64995", "0.5"]],
+                  "asks": [["65001", "1.0"], ["65002", "2.0"], ["65005", "0.5"]]
+                }
+              }
+            },
+            "supports_order_book": true
+          }
+        ],
+        "client_chain": {"crypto": ["p"]}
+      },
+      "operation": {
+        "method": "get_order_book",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "depth": 3}
+      },
+      "expected_output": {
+        "type": "OrderBook",
+        "fields": {"symbol": "BTCUSDT", "source_adapter": "p"},
+        "bids_length": 3,
+        "asks_length": 3,
+        "bids_sorted_descending_by_price": true,
+        "asks_sorted_ascending_by_price": true
+      },
+      "expected_error": null,
+      "tags": ["happy-path", "order-book"],
+      "skip_languages": []
+    },
+    {
+      "name": "get-order-book-feature-not-supported-falls-through",
+      "description": "Primary adapter does not support order book; orchestrator skips it and queries secondary which does.",
+      "setup": {
+        "adapters": [
+          {"id": "primary", "data": {}, "supports_order_book": false},
+          {
+            "id": "secondary",
+            "data": {
+              "BTCUSDT": {
+                "order_book": {"bids": [["64999", "1"]], "asks": [["65001", "1"]]}
+              }
+            },
+            "supports_order_book": true
+          }
+        ],
+        "client_chain": {"crypto": ["primary", "secondary"]}
+      },
+      "operation": {
+        "method": "get_order_book",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "depth": 1}
+      },
+      "expected_output": {
+        "type": "OrderBook",
+        "fields": {"source_adapter": "secondary"}
+      },
+      "expected_error": null,
+      "tags": ["fallback", "order-book"],
+      "skip_languages": []
+    },
+    {
+      "name": "get-order-book-feature-not-supported-all-fail",
+      "description": "Every adapter in chain returns supports_order_book=false; orchestrator raises ADAPTER_FEATURE_NOT_SUPPORTED via ALL_ADAPTERS_FAILED.",
+      "setup": {
+        "adapters": [
+          {"id": "a1", "data": {}, "supports_order_book": false},
+          {"id": "a2", "data": {}, "supports_order_book": false}
+        ],
+        "client_chain": {"crypto": ["a1", "a2"]}
+      },
+      "operation": {
+        "method": "get_order_book",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "depth": 5}
+      },
+      "expected_output": null,
+      "expected_error": {"code": "ALL_ADAPTERS_FAILED", "message_contains": null},
+      "tags": ["error", "order-book"],
+      "skip_languages": []
+    },
+    {
+      "name": "subscribe-ticker-native-yields-tickers-then-cancel",
+      "description": "Adapter advertises native streaming; iterator yields 3 tickers from a pre-seeded stream, then caller cancels.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "p",
+            "data": {
+              "BTCUSDT": {
+                "ticker_stream": [
+                  {"price": "65000", "timestamp": "2026-04-30T12:00:00Z"},
+                  {"price": "65001", "timestamp": "2026-04-30T12:00:01Z"},
+                  {"price": "65002", "timestamp": "2026-04-30T12:00:02Z"}
+                ]
+              }
+            },
+            "supports_native_streaming": true
+          }
+        ],
+        "client_chain": {"crypto": ["p"]}
+      },
+      "operation": {
+        "method": "subscribe_ticker",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "polling_fallback": false},
+        "yield_count": 3,
+        "cancel_after_yields": true
+      },
+      "expected_output": {
+        "type": "list[Ticker]",
+        "length": 3,
+        "all_have_field": "source_adapter:p"
+      },
+      "expected_error": null,
+      "tags": ["happy-path", "streaming"],
+      "skip_languages": []
+    },
+    {
+      "name": "subscribe-ticker-polling-emulation-yields-tickers",
+      "description": "Adapter has no native streaming; with polling_fallback=true the orchestrator emulates streaming via repeated get_spot, yielding 3 tickers spaced by polling_interval_s.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "p",
+            "data": {"BTCUSDT": {"spot": {"last": "65000", "quote_currency": "USDT"}}},
+            "supports_native_streaming": false
+          }
+        ],
+        "client_chain": {"crypto": ["p"]},
+        "streaming": {"default_polling_interval_s": 0.05}
+      },
+      "operation": {
+        "method": "subscribe_ticker",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "polling_fallback": true, "polling_interval_s": 0.05},
+        "yield_count": 3,
+        "cancel_after_yields": true
+      },
+      "expected_output": {
+        "type": "list[Ticker]",
+        "length": 3,
+        "all_have_field": "source_adapter:p",
+        "all_have_field_2": "price:65000"
+      },
+      "expected_error": null,
+      "tags": ["happy-path", "streaming"],
+      "skip_languages": []
+    },
+    {
+      "name": "subscribe-ticker-no-native-no-fallback-raises",
+      "description": "Adapter has no native streaming and caller sets polling_fallback=false; orchestrator raises STREAMING_NOT_SUPPORTED at subscribe time.",
+      "setup": {
+        "adapters": [
+          {"id": "p", "data": {}, "supports_native_streaming": false}
+        ],
+        "client_chain": {"crypto": ["p"]}
+      },
+      "operation": {
+        "method": "subscribe_ticker",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "polling_fallback": false}
+      },
+      "expected_output": null,
+      "expected_error": {"code": "STREAMING_NOT_SUPPORTED", "message_contains": null},
+      "tags": ["error", "streaming"],
+      "skip_languages": []
+    },
+    {
+      "name": "rate-limit-retry-then-success",
+      "description": "Adapter returns RATE_LIMITED on first call, succeeds on retry; with rate_limit.enabled=true, default backoff and max_retry_attempts>=1, orchestrator returns the second-call result.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "p",
+            "data": {"BTCUSDT": {"spot": {"last": "65000", "quote_currency": "USDT"}}},
+            "fail_modes": [{"symbol": "BTCUSDT", "code": "RATE_LIMITED", "fail_first_n": 1}]
+          }
+        ],
+        "client_chain": {"crypto": ["p"]},
+        "rate_limit": {"enabled": true, "strategy": "bubble", "max_retry_attempts": 3, "initial_backoff_s": 0.001, "jitter": false}
+      },
+      "operation": {
+        "method": "get_spot",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "quote_currency": "USDT"}
+      },
+      "expected_output": {
+        "type": "SpotPrice",
+        "fields": {"symbol": "BTCUSDT", "last": "65000", "source_adapter": "p"},
+        "adapter_call_count": {"p": 2}
+      },
+      "expected_error": null,
+      "tags": ["rate-limit", "spot"],
+      "skip_languages": []
+    },
+    {
+      "name": "rate-limit-exhausted-bubbles-up",
+      "description": "Adapter raises RATE_LIMITED indefinitely; with strategy=bubble and max_retry_attempts=2, orchestrator gives up and raises RATE_LIMITED.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "p",
+            "data": {"BTCUSDT": {"spot": {"last": "65000", "quote_currency": "USDT"}}},
+            "fail_modes": [{"symbol": "BTCUSDT", "code": "RATE_LIMITED"}]
+          }
+        ],
+        "client_chain": {"crypto": ["p"]},
+        "rate_limit": {"enabled": true, "strategy": "bubble", "max_retry_attempts": 2, "initial_backoff_s": 0.001, "jitter": false}
+      },
+      "operation": {
+        "method": "get_spot",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "quote_currency": "USDT"}
+      },
+      "expected_output": null,
+      "expected_error": {"code": "RATE_LIMITED", "message_contains": null},
+      "tags": ["rate-limit", "error"],
+      "skip_languages": []
+    },
+    {
+      "name": "rate-limit-exhausted-fallthrough-uses-secondary",
+      "description": "Primary always RATE_LIMITED; with strategy=fallthrough, orchestrator falls through to secondary which returns success.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "primary",
+            "data": {"BTCUSDT": {"spot": {"last": "65000", "quote_currency": "USDT"}}},
+            "fail_modes": [{"symbol": "BTCUSDT", "code": "RATE_LIMITED"}]
+          },
+          {
+            "id": "secondary",
+            "data": {"BTCUSDT": {"spot": {"last": "65010", "quote_currency": "USDT"}}}
+          }
+        ],
+        "client_chain": {"crypto": ["primary", "secondary"]},
+        "rate_limit": {"enabled": true, "strategy": "fallthrough", "max_retry_attempts": 2, "initial_backoff_s": 0.001, "jitter": false}
+      },
+      "operation": {
+        "method": "get_spot",
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "quote_currency": "USDT"}
+      },
+      "expected_output": {
+        "type": "SpotPrice",
+        "fields": {"symbol": "BTCUSDT", "last": "65010", "source_adapter": "secondary"}
+      },
+      "expected_error": null,
+      "tags": ["rate-limit", "fallback", "spot"],
+      "skip_languages": []
+    },
+    {
+      "name": "missing-credentials-raises-on-first-call",
+      "description": "Adapter requires_auth=true but neither api_key nor api_key_provider is set; first operation lazy-resolves, finds nothing, raises MISSING_CREDENTIALS.",
+      "setup": {
+        "adapters": [
+          {
+            "id": "auth-required",
+            "data": {"AAPL": {"spot": {"last": "200", "quote_currency": "USD"}}},
+            "requires_auth": true,
+            "api_key": null,
+            "api_key_provider": null
+          }
+        ],
+        "client_chain": {"stocks_us": ["auth-required"]}
+      },
+      "operation": {
+        "method": "get_spot",
+        "args": {"symbol": "AAPL", "market": "stocks_us", "quote_currency": "USD"}
+      },
+      "expected_output": null,
+      "expected_error": {"code": "MISSING_CREDENTIALS", "message_contains": "auth-required"},
+      "tags": ["error", "auth", "spot"],
+      "skip_languages": []
+    }
+  ]
 }

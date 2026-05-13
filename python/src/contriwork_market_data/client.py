@@ -74,9 +74,7 @@ def _validate_symbol(symbol: str) -> None:
 
 
 def _validate_quote_currency(quote_currency: str) -> None:
-    if not isinstance(quote_currency, str) or not (
-        _QUOTE_MIN <= len(quote_currency) <= _QUOTE_MAX
-    ):
+    if not isinstance(quote_currency, str) or not (_QUOTE_MIN <= len(quote_currency) <= _QUOTE_MAX):
         raise InvalidInputError(
             f"quote_currency must be {_QUOTE_MIN}..{_QUOTE_MAX} chars, got "
             f"len={len(quote_currency) if isinstance(quote_currency, str) else 'n/a'}"
@@ -158,9 +156,7 @@ class MarketDataClient:
         _validate_symbol(symbol)
         _validate_market(market)
         if not (1 <= limit <= _OHLCV_LIMIT_CAP):
-            raise InvalidInputError(
-                f"limit must be 1..{_OHLCV_LIMIT_CAP}, got {limit}"
-            )
+            raise InvalidInputError(f"limit must be 1..{_OHLCV_LIMIT_CAP}, got {limit}")
         if since is not None and since > self._clock.now():
             raise InvalidInputError("since must not be in the future")
 
@@ -182,17 +178,14 @@ class MarketDataClient:
         async def call(adapter: Adapter) -> list[Candle]:
             if interval not in adapter.capability.supported_intervals:
                 raise InvalidIntervalError(
-                    f"adapter {adapter.adapter_id} does not support interval "
-                    f"{interval.value}",
+                    f"adapter {adapter.adapter_id} does not support interval {interval.value}",
                     adapter_id=adapter.adapter_id,
                 )
             return await adapter.get_ohlcv(symbol, interval, since, limit)
 
         result = await self._run_chain(chain=chain, op=call)
         if cache is not None:
-            cache.set(
-                cache_key, tuple(result), ttl_s=self._config.cache.ohlcv_ttl_s
-            )
+            cache.set(cache_key, tuple(result), ttl_s=self._config.cache.ohlcv_ttl_s)
         return result
 
     async def get_order_book(
@@ -204,9 +197,7 @@ class MarketDataClient:
         _validate_symbol(symbol)
         _validate_market(market)
         if not (1 <= depth <= _ORDER_BOOK_DEPTH_CAP):
-            raise InvalidInputError(
-                f"depth must be 1..{_ORDER_BOOK_DEPTH_CAP}, got {depth}"
-            )
+            raise InvalidInputError(f"depth must be 1..{_ORDER_BOOK_DEPTH_CAP}, got {depth}")
 
         chain = self._resolve_chain(market)
         cache_key: tuple[Any, ...] = ("get_order_book", market, symbol, depth)
@@ -226,9 +217,7 @@ class MarketDataClient:
 
         result = await self._run_chain(chain=chain, op=call)
         if cache is not None:
-            cache.set(
-                cache_key, result, ttl_s=self._config.cache.order_book_ttl_s
-            )
+            cache.set(cache_key, result, ttl_s=self._config.cache.order_book_ttl_s)
         return result
 
     async def subscribe_ticker(
@@ -301,13 +290,10 @@ class MarketDataClient:
         self._buckets[adapter_id] = bucket
         return bucket
 
-    def _reject_if_unsupported_quote(
-        self, adapter: Adapter, quote_currency: str
-    ) -> None:
+    def _reject_if_unsupported_quote(self, adapter: Adapter, quote_currency: str) -> None:
         if not _quote_supported(adapter, quote_currency):
             raise UnsupportedQuoteCurrencyError(
-                f"adapter {adapter.adapter_id} does not support quote_currency "
-                f"{quote_currency!r}",
+                f"adapter {adapter.adapter_id} does not support quote_currency {quote_currency!r}",
                 adapter_id=adapter.adapter_id,
             )
 

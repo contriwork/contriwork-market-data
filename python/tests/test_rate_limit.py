@@ -31,9 +31,7 @@ def test_time_until_available() -> None:
 @pytest.mark.asyncio
 async def test_run_with_retry_succeeds_on_second_attempt() -> None:
     clock = ManualClock()
-    config = RateLimitConfig(
-        max_retry_attempts=3, initial_backoff_s=0.001, jitter=False
-    )
+    config = RateLimitConfig(max_retry_attempts=3, initial_backoff_s=0.001, jitter=False)
     counter = {"n": 0}
 
     async def fn() -> str:
@@ -50,9 +48,7 @@ async def test_run_with_retry_succeeds_on_second_attempt() -> None:
 @pytest.mark.asyncio
 async def test_run_with_retry_bubbles_when_attempts_exhausted() -> None:
     clock = ManualClock()
-    config = RateLimitConfig(
-        max_retry_attempts=2, initial_backoff_s=0.001, jitter=False
-    )
+    config = RateLimitConfig(max_retry_attempts=2, initial_backoff_s=0.001, jitter=False)
     counter = {"n": 0}
 
     async def fn() -> str:

@@ -42,9 +42,7 @@ async def test_polling_emulation_raises_after_consecutive_failures() -> None:
     adapter = InMemoryAdapter(
         adapter_id="p",
         data={"BTCUSDT": {"spot": {"last": "65000", "quote_currency": "USDT"}}},
-        fail_modes=[
-            InMemoryFailMode(symbol="BTCUSDT", code="ADAPTER_UNAVAILABLE")
-        ],
+        fail_modes=[InMemoryFailMode(symbol="BTCUSDT", code="ADAPTER_UNAVAILABLE")],
         clock=clock,
     )
     with pytest.raises(StreamDisconnectedError):

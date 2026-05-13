@@ -16,8 +16,12 @@ from contriwork_market_data._clock import ManualClock
 from contriwork_market_data.adapters import InMemoryAdapter, InMemoryFailMode
 
 
-def _client(adapters: dict[str, list], *, config: ClientConfig | None = None,
-            clock: ManualClock | None = None) -> MarketDataClient:
+def _client(
+    adapters: dict[str, list],
+    *,
+    config: ClientConfig | None = None,
+    clock: ManualClock | None = None,
+) -> MarketDataClient:
     return MarketDataClient(
         registry=AdapterRegistry(adapters),
         config=config or ClientConfig.defaults(),
@@ -27,9 +31,7 @@ def _client(adapters: dict[str, list], *, config: ClientConfig | None = None,
 
 @pytest.mark.asyncio
 async def test_get_spot_validates_symbol() -> None:
-    client = _client(
-        {"crypto": [InMemoryAdapter(adapter_id="p", data={})]}
-    )
+    client = _client({"crypto": [InMemoryAdapter(adapter_id="p", data={})]})
     with pytest.raises(InvalidInputError):
         await client.get_spot("", "crypto", "USDT")
     with pytest.raises(InvalidInputError):

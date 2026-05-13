@@ -298,8 +298,7 @@ class InMemoryAdapter:
             and quote_currency not in self.capability.supported_quote_currencies
         ):
             raise UnsupportedQuoteCurrencyError(
-                f"adapter {self.adapter_id} does not support quote_currency "
-                f"{quote_currency!r}",
+                f"adapter {self.adapter_id} does not support quote_currency {quote_currency!r}",
                 adapter_id=self.adapter_id,
             )
         for fm in self._fail_modes.values():

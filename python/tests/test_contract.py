@@ -29,9 +29,7 @@ from contriwork_market_data._clock import ManualClock
 from contriwork_market_data.adapters import InMemoryAdapter, InMemoryFailMode
 from contriwork_market_data.types import Capability
 
-FIXTURE = (
-    Path(__file__).resolve().parents[2] / "contract-tests" / "test_cases.json"
-)
+FIXTURE = Path(__file__).resolve().parents[2] / "contract-tests" / "test_cases.json"
 
 
 def _load_cases() -> list[dict[str, Any]]:
@@ -62,14 +60,10 @@ def _build_adapter(spec: dict[str, Any], clock: ManualClock) -> InMemoryAdapter:
         "requires_auth": spec.get("requires_auth", False),
     }
     if "supported_intervals" in spec:
-        cap_kwargs["supported_intervals"] = tuple(
-            Interval(v) for v in spec["supported_intervals"]
-        )
+        cap_kwargs["supported_intervals"] = tuple(Interval(v) for v in spec["supported_intervals"])
     if "supported_quote_currencies" in spec:
         sqc = spec["supported_quote_currencies"]
-        cap_kwargs["supported_quote_currencies"] = (
-            "ANY" if sqc == "ANY" else tuple(sqc)
-        )
+        cap_kwargs["supported_quote_currencies"] = "ANY" if sqc == "ANY" else tuple(sqc)
     capability = Capability(**cap_kwargs)  # type: ignore[arg-type]
     fail_modes = [
         InMemoryFailMode(
@@ -105,9 +99,7 @@ def _build_client(
     rl_cfg = RateLimitConfig(**(setup.get("rate_limit") or {}))
     stream_cfg = StreamingConfig(**(setup.get("streaming") or {}))
     config = ClientConfig(cache=cache_cfg, rate_limit=rl_cfg, streaming=stream_cfg)
-    client = MarketDataClient(
-        registry=AdapterRegistry(chains), config=config, clock=clock
-    )
+    client = MarketDataClient(registry=AdapterRegistry(chains), config=config, clock=clock)
     return client, adapters, clock
 
 
@@ -123,6 +115,7 @@ async def _invoke(
     if method == "get_ohlcv":
         since = args.get("since")
         from datetime import datetime as _dt
+
         return await client.get_ohlcv(
             args["symbol"],
             args["market"],
@@ -131,9 +124,7 @@ async def _invoke(
             args.get("limit", 100),
         )
     if method == "get_order_book":
-        return await client.get_order_book(
-            args["symbol"], args["market"], args.get("depth", 20)
-        )
+        return await client.get_order_book(args["symbol"], args["market"], args.get("depth", 20))
     raise ValueError(f"unsupported method in fixture: {method!r}")
 
 
@@ -179,20 +170,18 @@ def _assert_expected_output(
                     f"SpotPrice.{field}: expected {value!r} got {actual!r}"
                 )
             else:
-                assert actual == value, (
-                    f"SpotPrice.{field}: expected {value!r} got {actual!r}"
-                )
+                assert actual == value, f"SpotPrice.{field}: expected {value!r} got {actual!r}"
     elif type_label.startswith("list[Candle]"):
         assert isinstance(result, list)
         if "length" in expected:
             assert len(result) == expected["length"]
         if expected.get("ordered_ascending_by") == "timestamp":
             assert all(
-                result[i].timestamp <= result[i + 1].timestamp
-                for i in range(len(result) - 1)
+                result[i].timestamp <= result[i + 1].timestamp for i in range(len(result) - 1)
             )
         if "all_timestamps_at_or_after" in expected:
             from datetime import datetime as _dt
+
             min_ts = _dt.fromisoformat(
                 expected["all_timestamps_at_or_after"].replace("Z", "+00:00")
             )
@@ -231,8 +220,7 @@ def _assert_expected_output(
             # across ops covers the total fixture-relevant call count.
             actual = sum(adapter.call_counts.values())
             assert actual == expected_count, (
-                f"adapter {adapter_id} call count: expected {expected_count}, "
-                f"got {actual}"
+                f"adapter {adapter_id} call count: expected {expected_count}, got {actual}"
             )
 
 
@@ -250,6 +238,7 @@ async def test_case(case: dict[str, Any]) -> None:
         yield_count = operation.get("yield_count", 0)
         if expected_error is not None:
             from contriwork_market_data.errors import error_for_code
+
             with pytest.raises(error_for_code(expected_error["code"])):
                 await _consume_stream(client, args, yield_count or 1)
             return
@@ -264,13 +253,13 @@ async def test_case(case: dict[str, Any]) -> None:
     for i in range(repeat):
         if expected_error is not None:
             from contriwork_market_data.errors import error_for_code
+
             with pytest.raises(error_for_code(expected_error["code"])) as info:
                 await _invoke(client, method, args)
             msg_contains = expected_error.get("message_contains")
             if msg_contains:
                 assert msg_contains in str(info.value), (
-                    f"expected message to contain {msg_contains!r}, "
-                    f"got {info.value!r}"
+                    f"expected message to contain {msg_contains!r}, got {info.value!r}"
                 )
             return
         last = await _invoke(client, method, args)

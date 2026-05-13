@@ -53,13 +53,9 @@ class RateLimitConfig:
 
     def __post_init__(self) -> None:
         if self.strategy not in ("bubble", "fallthrough"):
-            raise ValueError(
-                f"strategy must be 'bubble' or 'fallthrough', got {self.strategy!r}"
-            )
+            raise ValueError(f"strategy must be 'bubble' or 'fallthrough', got {self.strategy!r}")
         if self.max_retry_attempts < 0:
-            raise ValueError(
-                f"max_retry_attempts must be >= 0, got {self.max_retry_attempts}"
-            )
+            raise ValueError(f"max_retry_attempts must be >= 0, got {self.max_retry_attempts}")
         if self.initial_backoff_s < 0 or self.max_backoff_s < self.initial_backoff_s:
             raise ValueError(
                 "0 <= initial_backoff_s <= max_backoff_s required, got "
@@ -84,9 +80,7 @@ class StreamingConfig:
                 f"max_reconnect_attempts must be >= 0, got {self.max_reconnect_attempts}"
             )
         if self.reconnect_backoff_s < 0:
-            raise ValueError(
-                f"reconnect_backoff_s must be >= 0, got {self.reconnect_backoff_s}"
-            )
+            raise ValueError(f"reconnect_backoff_s must be >= 0, got {self.reconnect_backoff_s}")
 
 
 @dataclass(frozen=True, slots=True)

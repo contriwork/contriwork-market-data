@@ -1,30 +1,51 @@
-"""Port definition — see CONTRACT.md for the language-agnostic specification."""
+"""Public port — mirror of CONTRACT.md §2.
+
+This is the consumer-facing surface. The concrete production implementation
+is :class:`~contriwork_market_data.client.MarketDataClient`; tests may
+satisfy this protocol with their own fakes. Method names align with C#
+(``PascalCaseAsync``) and TypeScript (``camelCase``) implementations.
+"""
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from datetime import datetime
 from typing import Protocol, runtime_checkable
+
+from .types import Candle, Interval, OrderBook, SpotPrice, Ticker
+
+__all__ = ["MarketDataPort"]
 
 
 @runtime_checkable
 class MarketDataPort(Protocol):
-    """Placeholder port. Replace with the real contract methods.
+    async def get_spot(
+        self,
+        symbol: str,
+        market: str,
+        quote_currency: str = "USD",
+    ) -> SpotPrice: ...
 
-    Keep method names aligned with C# (`PascalCaseAsync`) and TypeScript
-    (`camelCase`) implementations. Any signature change here MUST land in
-    CONTRACT.md first and be mirrored in all three languages in the same PR.
-    """
+    async def get_ohlcv(
+        self,
+        symbol: str,
+        market: str,
+        interval: Interval,
+        since: datetime | None = None,
+        limit: int = 100,
+    ) -> list[Candle]: ...
 
-    async def example(self, input: str) -> str:
-        """TODO: replace with a real contract method.
+    async def get_order_book(
+        self,
+        symbol: str,
+        market: str,
+        depth: int = 20,
+    ) -> OrderBook: ...
 
-        Args:
-            input: Non-empty UTF-8 string, length <= 4096.
-
-        Returns:
-            A non-empty string derived deterministically from ``input``.
-
-        Raises:
-            ValueError: If ``input`` fails validation (error code
-                ``INVALID_INPUT`` per CONTRACT.md).
-        """
-        ...
+    def subscribe_ticker(
+        self,
+        symbol: str,
+        market: str,
+        polling_fallback: bool = True,
+        polling_interval_s: float = 4.0,
+    ) -> AsyncIterator[Ticker]: ...

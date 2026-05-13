@@ -272,7 +272,8 @@
             }
           }
         ],
-        "client_chain": {"crypto": ["p"]}
+        "client_chain": {"crypto": ["p"]},
+        "clock": {"epoch_seconds": 1777593600}
       },
       "operation": {
         "method": "get_ohlcv",
@@ -420,11 +421,11 @@
           }
         ],
         "client_chain": {"crypto": ["p"]},
-        "streaming": {"default_polling_interval_s": 0.05}
+        "streaming": {"default_polling_interval_s": 1.0}
       },
       "operation": {
         "method": "subscribe_ticker",
-        "args": {"symbol": "BTCUSDT", "market": "crypto", "polling_fallback": true, "polling_interval_s": 0.05},
+        "args": {"symbol": "BTCUSDT", "market": "crypto", "polling_fallback": true, "polling_interval_s": 1.0},
         "yield_count": 3,
         "cancel_after_yields": true
       },

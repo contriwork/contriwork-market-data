@@ -28,8 +28,8 @@ Thanks for your interest in ContriWork. This document covers the rules for contr
 
 ```bash
 # clone your fork
-git clone git@github.com:<your-username>/contriwork-PACKAGE_NAME.git
-cd contriwork-PACKAGE_NAME
+git clone git@github.com:<your-username>/contriwork-market-data.git
+cd contriwork-market-data
 
 # install pre-commit hooks (gitleaks, ruff, dotnet format, eslint)
 pre-commit install --install-hooks

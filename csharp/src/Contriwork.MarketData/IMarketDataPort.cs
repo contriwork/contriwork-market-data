@@ -1,4 +1,4 @@
-namespace Contriwork.PackageName;
+namespace Contriwork.MarketData;
 
 /// <summary>
 /// Port definition — see CONTRACT.md for the language-agnostic specification.
@@ -6,7 +6,7 @@ namespace Contriwork.PackageName;
 /// TypeScript (<c>camelCase</c>) ports; any signature change MUST land in
 /// CONTRACT.md first and in all three languages in the same PR.
 /// </summary>
-public interface IPackageNamePort
+public interface IMarketDataPort
 {
     /// <summary>
     /// TODO: replace with a real contract method.

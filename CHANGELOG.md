@@ -20,4 +20,4 @@ Each release MUST contain three language sub-sections (`### Python`, `### C#`, `
 
 - Initial scaffold.
 
-[Unreleased]: https://github.com/contriwork/contriwork-PACKAGE_NAME/compare/v0.0.0...HEAD
+[Unreleased]: https://github.com/contriwork/contriwork-market-data/compare/v0.0.0...HEAD

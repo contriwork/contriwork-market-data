@@ -1,13 +1,13 @@
 <div align="center">
 
-# contriwork-PACKAGE_NAME
+# contriwork-market-data
 
 **One API surface, three languages.**
 
-[![PyPI](https://img.shields.io/pypi/v/contriwork-PACKAGE_NAME.svg)](https://pypi.org/project/contriwork-PACKAGE_NAME/)
-[![NuGet](https://img.shields.io/nuget/v/Contriwork.PackageName.svg)](https://www.nuget.org/packages/Contriwork.PackageName/)
-[![npm](https://img.shields.io/npm/v/@contriwork/PACKAGE_NAME.svg)](https://www.npmjs.com/package/@contriwork/PACKAGE_NAME)
-[![CI](https://github.com/contriwork/contriwork-PACKAGE_NAME/actions/workflows/ci.yml/badge.svg)](https://github.com/contriwork/contriwork-PACKAGE_NAME/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/contriwork-market-data.svg)](https://pypi.org/project/contriwork-market-data/)
+[![NuGet](https://img.shields.io/nuget/v/Contriwork.MarketData.svg)](https://www.nuget.org/packages/Contriwork.MarketData/)
+[![npm](https://img.shields.io/npm/v/@contriwork/market-data.svg)](https://www.npmjs.com/package/@contriwork/market-data)
+[![CI](https://github.com/contriwork/contriwork-market-data/actions/workflows/ci.yml/badge.svg)](https://github.com/contriwork/contriwork-market-data/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 </div>
@@ -22,9 +22,9 @@
 
 | Registry | Command                                                |
 |----------|--------------------------------------------------------|
-| PyPI     | `pip install contriwork-PACKAGE_NAME`                  |
-| NuGet    | `dotnet add package Contriwork.PackageName`            |
-| npm      | `npm install @contriwork/PACKAGE_NAME`                 |
+| PyPI     | `pip install contriwork-market-data`                  |
+| NuGet    | `dotnet add package Contriwork.MarketData`            |
+| npm      | `npm install @contriwork/market-data`                 |
 
 All three publish at the **same version** on the **same release**. See [`VERSION_MATRIX.md`](./VERSION_MATRIX.md) for runtime support per release.
 
@@ -33,21 +33,21 @@ All three publish at the **same version** on the **same release**. See [`VERSION
 ### Python
 
 ```python
-from contriwork_PACKAGE_NAME import PackageNamePort
+from contriwork_market_data import MarketDataPort
 # TODO: example
 ```
 
 ### C#
 
 ```csharp
-using Contriwork.PackageName;
+using Contriwork.MarketData;
 // TODO: example
 ```
 
 ### TypeScript
 
 ```typescript
-import { PackageNamePort } from "@contriwork/PACKAGE_NAME";
+import { MarketDataPort } from "@contriwork/market-data";
 // TODO: example
 ```
 

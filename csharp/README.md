@@ -1,20 +1,20 @@
-# Contriwork.PackageName (.NET)
+# Contriwork.MarketData (.NET)
 
-.NET adapter for the ContriWork **PackageName** port. One API surface, three languages (Python / .NET / npm) — this package is the .NET implementation.
+.NET adapter for the ContriWork **MarketData** port. One API surface, three languages (Python / .NET / npm) — this package is the .NET implementation.
 
 Cross-language specification, contract, and release history live in the
-[GitHub repository](https://github.com/contriwork/contriwork-PACKAGE_NAME):
+[GitHub repository](https://github.com/contriwork/contriwork-market-data):
 
-- [Root README](https://github.com/contriwork/contriwork-PACKAGE_NAME/blob/main/README.md) — ecosystem overview
-- [`CONTRACT.md`](https://github.com/contriwork/contriwork-PACKAGE_NAME/blob/main/CONTRACT.md) — language-agnostic port spec
-- [`CHANGELOG.md`](https://github.com/contriwork/contriwork-PACKAGE_NAME/blob/main/CHANGELOG.md)
+- [Root README](https://github.com/contriwork/contriwork-market-data/blob/main/README.md) — ecosystem overview
+- [`CONTRACT.md`](https://github.com/contriwork/contriwork-market-data/blob/main/CONTRACT.md) — language-agnostic port spec
+- [`CHANGELOG.md`](https://github.com/contriwork/contriwork-market-data/blob/main/CHANGELOG.md)
 
-Sister packages: [`contriwork-PACKAGE_NAME`](https://pypi.org/project/contriwork-PACKAGE_NAME/) (PyPI), [`@contriwork/PACKAGE_NAME`](https://www.npmjs.com/package/@contriwork/PACKAGE_NAME) (npm).
+Sister packages: [`contriwork-market-data`](https://pypi.org/project/contriwork-market-data/) (PyPI), [`@contriwork/market-data`](https://www.npmjs.com/package/@contriwork/market-data) (npm).
 
 ## Install
 
 ```bash
-dotnet add package Contriwork.PackageName
+dotnet add package Contriwork.MarketData
 ```
 
 Targets **.NET 10 LTS**.
@@ -22,7 +22,7 @@ Targets **.NET 10 LTS**.
 ## Quick start
 
 ```csharp
-using Contriwork.PackageName;
+using Contriwork.MarketData;
 
 // TODO: one-line example once the port has real methods.
 ```
@@ -38,4 +38,4 @@ dotnet format --verify-no-changes
 
 ## License
 
-MIT — see [LICENSE](https://github.com/contriwork/contriwork-PACKAGE_NAME/blob/main/LICENSE).
+MIT — see [LICENSE](https://github.com/contriwork/contriwork-market-data/blob/main/LICENSE).

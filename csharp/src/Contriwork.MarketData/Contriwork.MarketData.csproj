@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>Contriwork.MarketData</PackageId>
+    <Title>Contriwork.MarketData</Title>
+    <Description>Unified market-data port — spot, OHLCV, order book, ticker streaming. 10 adapters: CoinGecko, CoinMarketCap, Binance, Kraken, Coinbase, Alpha Vantage, Finnhub, IEX Cloud, Polygon.io, Tiingo. TTL cache + per-adapter rate limiting + ordered fallback. Cross-language sibling of contriwork-market-data (PyPI) and @contriwork/market-data (npm). YFinance adapter is Python-only.</Description>
+    <PackageTags>market-data;crypto;stocks;ohlcv;ticker;order-book;streaming;websocket;coingecko;coinmarketcap;binance;kraken;coinbase;alpha-vantage;finnhub;iex-cloud;polygon;tiingo;contriwork</PackageTags>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>true</IsPackable>
+    <RootNamespace>Contriwork.MarketData</RootNamespace>
+    <AssemblyName>Contriwork.MarketData</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Pack the C#-specific README at csharp/README.md into the .nupkg.
+         The repo-root README.md is an ecosystem landing page (contains
+         cross-registry badges and Python/npm references) which reads
+         confusingly when displayed on nuget.org. -->
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

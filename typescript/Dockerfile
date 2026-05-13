@@ -2,8 +2,7 @@
 # hadolint global ignore=DL3018
 
 # ---- build stage ----------------------------------------------------------
-# TEMPLATE_USAGE.md §3: replace @sha256:TODO with an actual digest before release.
-FROM node:24-bookworm-slim@sha256:TODO AS build
+FROM node:24-bookworm-slim@sha256:03eae3ef7e88a9de535496fb488d67e02b9d96a063a8967bae657744ecd513f2 AS build
 
 WORKDIR /app
 
@@ -20,7 +19,7 @@ RUN pnpm build \
  && pnpm prune --prod --ignore-scripts
 
 # ---- runtime stage --------------------------------------------------------
-FROM node:24-alpine@sha256:TODO AS runtime
+FROM node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06dbdfc94f AS runtime
 
 ENV NODE_ENV=production
 

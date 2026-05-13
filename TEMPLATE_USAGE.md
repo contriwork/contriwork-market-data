@@ -6,11 +6,11 @@ The placeholder tokens used throughout the template:
 
 | Context | Placeholder | Replace with (example `config-core`) |
 |---------|-------------|--------------------------------------|
-| Python dist name | `contriwork-PACKAGE_NAME` | `contriwork-config-core` |
-| Python import | `contriwork_PACKAGE_NAME` | `contriwork_config_core` |
-| C# namespace / assembly | `Contriwork.PackageName` | `Contriwork.ConfigCore` |
-| TypeScript symbol | `PackageName` | `ConfigCore` |
-| npm package | `@contriwork/PACKAGE_NAME` | `@contriwork/config-core` |
+| Python dist name | `contriwork-market-data` | `contriwork-config-core` |
+| Python import | `contriwork_market_data` | `contriwork_config_core` |
+| C# namespace / assembly | `Contriwork.MarketData` | `Contriwork.ConfigCore` |
+| TypeScript symbol | `MarketData` | `ConfigCore` |
+| npm package | `@contriwork/market-data` | `@contriwork/config-core` |
 
 ---
 
@@ -29,26 +29,26 @@ Steps 6–8 (per-package Trusted Publisher registrations and per-repo GitHub set
 ## 1. Rename directories
 
 ```bash
-git mv python/src/contriwork_PACKAGE_NAME python/src/contriwork_<your_name>
-git mv csharp/src/Contriwork.PackageName csharp/src/Contriwork.<YourName>
-git mv csharp/tests/Contriwork.PackageName.Tests csharp/tests/Contriwork.<YourName>.Tests
+git mv python/src/contriwork_market_data python/src/contriwork_<your_name>
+git mv csharp/src/Contriwork.MarketData csharp/src/Contriwork.<YourName>
+git mv csharp/tests/Contriwork.MarketData.Tests csharp/tests/Contriwork.<YourName>.Tests
 ```
 
 ## 2. Global find-and-replace
 
 Use your editor's project-wide replace (case-sensitive). Do the replacements in this order to avoid partial-match collisions:
 
-1. `@contriwork/PACKAGE_NAME` → `@contriwork/<your-name>` (kebab-case, npm)
-2. `contriwork-PACKAGE_NAME` → `contriwork-<your-name>` (kebab-case, PyPI)
-3. `contriwork_PACKAGE_NAME` → `contriwork_<your_name>` (snake_case, Python import)
-4. `Contriwork.PackageName` → `Contriwork.<YourName>` (PascalCase, C#)
-5. `PackageName` → `<YourName>` (PascalCase, TypeScript symbols)
-6. `PACKAGE_NAME` → `<your-name>` or `<your_name>` — context-dependent; verify by diff.
+1. `@contriwork/market-data` → `@contriwork/<your-name>` (kebab-case, npm)
+2. `contriwork-market-data` → `contriwork-<your-name>` (kebab-case, PyPI)
+3. `contriwork_market_data` → `contriwork_<your_name>` (snake_case, Python import)
+4. `Contriwork.MarketData` → `Contriwork.<YourName>` (PascalCase, C#)
+5. `MarketData` → `<YourName>` (PascalCase, TypeScript symbols)
+6. `market-data` → `<your-name>` or `<your_name>` — context-dependent; verify by diff.
 
 Rename C# solution file:
 
 ```bash
-git mv csharp/Contriwork.PackageName.sln csharp/Contriwork.<YourName>.sln
+git mv csharp/Contriwork.MarketData.sln csharp/Contriwork.<YourName>.sln
 ```
 
 ## 3. Pin Dockerfile base image digests
@@ -77,7 +77,7 @@ Each registry displays a **different** README from the package tarball; if any o
 
 - `README.md` (repo root) — ecosystem overview, all three registry badges, cross-language quick-tour. This is what shows up on GitHub.
 - `python/README.md` — ships to PyPI (declared by `python/pyproject.toml`'s `readme` field).
-- `csharp/README.md` — ships to NuGet (packed by `csharp/src/Contriwork.PackageName/Contriwork.PackageName.csproj` via `<None Include="..\..\README.md" Pack="true" PackagePath="\" />`).
+- `csharp/README.md` — ships to NuGet (packed by `csharp/src/Contriwork.MarketData/Contriwork.MarketData.csproj` via `<None Include="..\..\README.md" Pack="true" PackagePath="\" />`).
 - `typescript/README.md` — ships to npm (included by `typescript/package.json`'s `"files": ["dist", "README.md", "LICENSE"]`).
 
 For each of the three per-registry READMEs, replace the `TODO` blocks:

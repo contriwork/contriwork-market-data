@@ -4,7 +4,7 @@
  * (`PascalCaseAsync`) ports. Any signature change MUST land in CONTRACT.md
  * first and be mirrored in all three languages in the same PR.
  */
-export interface PackageNamePort {
+export interface MarketDataPort {
   /**
    * TODO: replace with a real contract method.
    *

@@ -1,22 +1,22 @@
-# @contriwork/PACKAGE_NAME (npm)
+# @contriwork/market-data (npm)
 
-Node.js / TypeScript adapter for the ContriWork **PackageName** port. One API surface, three languages (Python / .NET / npm) — this package is the Node.js implementation.
+Node.js / TypeScript adapter for the ContriWork **MarketData** port. One API surface, three languages (Python / .NET / npm) — this package is the Node.js implementation.
 
 Cross-language specification, contract, and release history live in the
-[GitHub repository](https://github.com/contriwork/contriwork-PACKAGE_NAME):
+[GitHub repository](https://github.com/contriwork/contriwork-market-data):
 
-- [Root README](https://github.com/contriwork/contriwork-PACKAGE_NAME/blob/main/README.md) — ecosystem overview
-- [`CONTRACT.md`](https://github.com/contriwork/contriwork-PACKAGE_NAME/blob/main/CONTRACT.md) — language-agnostic port spec
-- [`CHANGELOG.md`](https://github.com/contriwork/contriwork-PACKAGE_NAME/blob/main/CHANGELOG.md)
+- [Root README](https://github.com/contriwork/contriwork-market-data/blob/main/README.md) — ecosystem overview
+- [`CONTRACT.md`](https://github.com/contriwork/contriwork-market-data/blob/main/CONTRACT.md) — language-agnostic port spec
+- [`CHANGELOG.md`](https://github.com/contriwork/contriwork-market-data/blob/main/CHANGELOG.md)
 
-Sister packages: [`contriwork-PACKAGE_NAME`](https://pypi.org/project/contriwork-PACKAGE_NAME/) (PyPI), [`Contriwork.PackageName`](https://www.nuget.org/packages/Contriwork.PackageName) (NuGet).
+Sister packages: [`contriwork-market-data`](https://pypi.org/project/contriwork-market-data/) (PyPI), [`Contriwork.MarketData`](https://www.nuget.org/packages/Contriwork.MarketData) (NuGet).
 
 ## Install
 
 ```bash
-npm install @contriwork/PACKAGE_NAME
-# or: pnpm add @contriwork/PACKAGE_NAME
-# or: yarn add @contriwork/PACKAGE_NAME
+npm install @contriwork/market-data
+# or: pnpm add @contriwork/market-data
+# or: yarn add @contriwork/market-data
 ```
 
 Requires **Node.js ≥ 24**. Dual-published ESM + CJS with bundled `.d.ts` / `.d.cts` type declarations. Published with [npm provenance](https://docs.npmjs.com/generating-provenance-statements) via GitHub Actions OIDC.
@@ -24,7 +24,7 @@ Requires **Node.js ≥ 24**. Dual-published ESM + CJS with bundled `.d.ts` / `.d
 ## Quick start
 
 ```ts
-import type { PackageNamePort } from "@contriwork/PACKAGE_NAME";
+import type { MarketDataPort } from "@contriwork/market-data";
 
 // TODO: one-line example once the port has real methods.
 ```
@@ -41,4 +41,4 @@ pnpm build
 
 ## License
 
-MIT — see [LICENSE](https://github.com/contriwork/contriwork-PACKAGE_NAME/blob/main/LICENSE).
+MIT — see [LICENSE](https://github.com/contriwork/contriwork-market-data/blob/main/LICENSE).

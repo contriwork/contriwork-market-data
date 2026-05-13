@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Xunit;
 
-namespace Contriwork.PackageName.Tests;
+namespace Contriwork.MarketData.Tests;
 
 /// <summary>
 /// Contract test runner — one of three (Python / C# / TypeScript) that MUST

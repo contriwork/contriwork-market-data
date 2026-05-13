@@ -17,8 +17,8 @@
     <Authors>ContriWork</Authors>
     <Copyright>Copyright (c) ContriWork contributors</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/contriwork/contriwork-PACKAGE_NAME</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/contriwork/contriwork-PACKAGE_NAME</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/contriwork/contriwork-market-data</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/contriwork/contriwork-market-data</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>

@@ -32,7 +32,9 @@ classifiers = [
   "Typing :: Typed",
 ]
 dynamic = ["version"]
-dependencies = []
+dependencies = [
+  "httpx>=0.28",
+]
 
 [project.urls]
 Homepage = "https://github.com/contriwork/contriwork-market-data"
@@ -44,6 +46,7 @@ Changelog = "https://github.com/contriwork/contriwork-market-data/blob/main/CHAN
 dev = [
   "pytest>=8.3",
   "pytest-asyncio>=0.24",
+  "respx>=0.22",
   "ruff>=0.8",
   "mypy>=1.13",
   "pip-audit>=2.7",

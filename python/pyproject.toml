@@ -36,6 +36,11 @@ dependencies = [
   "httpx>=0.28",
 ]
 
+[project.optional-dependencies]
+# YFinance is Python-only (see SCOPE.md §2.2). Installed with:
+#   pip install "contriwork-market-data[yfinance]"
+yfinance = ["yfinance>=0.2"]
+
 [project.urls]
 Homepage = "https://github.com/contriwork/contriwork-market-data"
 Repository = "https://github.com/contriwork/contriwork-market-data"
@@ -50,6 +55,10 @@ dev = [
   "ruff>=0.8",
   "mypy>=1.13",
   "pip-audit>=2.7",
+  # Installed for YFinance adapter coverage. End users opt into yfinance via
+  # the ``[yfinance]`` extra; the dev group pulls it unconditionally so the
+  # test suite covers the adapter without a separate matrix job.
+  "yfinance>=0.2",
 ]
 
 [tool.hatch.version]
@@ -99,6 +108,12 @@ warn_return_any = true
 disallow_any_explicit = false
 show_error_codes = true
 pretty = true
+
+[[tool.mypy.overrides]]
+# yfinance ships no type stubs and no py.typed marker; the YFinanceAdapter
+# wrapper isolates its surface so the rest of the package stays strict.
+module = ["yfinance", "yfinance.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

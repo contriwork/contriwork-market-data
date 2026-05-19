@@ -1,21 +1,30 @@
+using Contriwork.MarketData;
+using Contriwork.MarketData.Adapters;
 using Xunit;
 
 namespace Contriwork.MarketData.Tests;
 
+/// <summary>Smoke tests — verify the public surface is reachable.</summary>
 public sealed class SmokeTests
 {
     [Fact]
-    public void Port_Interface_Is_Public()
+    public void Interval_Has_Nine_Members()
     {
-        var t = typeof(IMarketDataPort);
-        Assert.True(t.IsPublic);
-        Assert.True(t.IsInterface);
+        Assert.Equal(9, Enum.GetValues<Interval>().Length);
     }
 
     [Fact]
-    public void Port_Declares_Example_Method()
+    public void Client_Constructs_With_Defaults()
     {
-        var method = typeof(IMarketDataPort).GetMethod(nameof(IMarketDataPort.ExampleAsync));
-        Assert.NotNull(method);
+        var client = new MarketDataClient(new AdapterRegistry());
+        Assert.IsAssignableFrom<IMarketDataPort>(client);
+    }
+
+    [Fact]
+    public void InMemoryAdapter_Implements_Adapter_Contract()
+    {
+        var adapter = new InMemoryAdapter("test");
+        Assert.IsAssignableFrom<IMarketDataAdapter>(adapter);
+        Assert.Equal("test", adapter.AdapterId);
     }
 }

@@ -28,6 +28,10 @@ export default [
         clearInterval: "readonly",
         Buffer: "readonly",
         globalThis: "readonly",
+        performance: "readonly",
+        AbortController: "readonly",
+        AbortSignal: "readonly",
+        DOMException: "readonly",
       },
     },
     plugins: {
@@ -52,6 +56,7 @@ export default [
     files: ["tests/**/*.ts"],
     rules: {
       "security/detect-non-literal-fs-filename": "off",
+      "security/detect-object-injection": "off",
     },
   },
   prettier,

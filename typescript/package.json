@@ -85,5 +85,8 @@
   "publishConfig": {
     "access": "public",
     "provenance": true
+  },
+  "dependencies": {
+    "decimal.js": "^10.6.0"
   }
 }

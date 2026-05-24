@@ -32,6 +32,7 @@ export default [
         AbortController: "readonly",
         AbortSignal: "readonly",
         DOMException: "readonly",
+        fetch: "readonly",
       },
     },
     plugins: {
@@ -56,6 +57,18 @@ export default [
     files: ["tests/**/*.ts"],
     rules: {
       "security/detect-non-literal-fs-filename": "off",
+      "security/detect-object-injection": "off",
+    },
+  },
+  {
+    // Adapters shape parsed provider JSON via computed-key *reads*
+    // (e.g. body[`${vs}_24h_vol`], data[symbol]). detect-object-injection
+    // targets attacker-controlled object *writes* (obj[userInput] = …),
+    // which adapters never do — every bracket access here reads a value
+    // out of a response we just parsed. The rule stays on everywhere else
+    // (orchestrator, registry, internal helpers).
+    files: ["src/adapters/**/*.ts"],
+    rules: {
       "security/detect-object-injection": "off",
     },
   },

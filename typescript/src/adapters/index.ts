@@ -1,6 +1,6 @@
 /**
- * Concrete adapter implementations. v0.1.0 ships InMemory + five crypto
- * adapters here; stocks adapters arrive in PR 10.
+ * Concrete adapter implementations. v0.1.0 ships InMemory + ten provider
+ * adapters (five crypto, five stocks). YFinance is Python-only (SCOPE.md §2.2).
  */
 export {
   InMemoryAdapter,
@@ -20,4 +20,12 @@ export {
   CoinMarketCapAdapter,
   type CoinMarketCapOptions,
 } from "./coinmarketcap.js";
+export {
+  AlphaVantageAdapter,
+  type AlphaVantageOptions,
+} from "./alpha-vantage.js";
+export { FinnhubAdapter, type FinnhubOptions } from "./finnhub.js";
+export { IEXCloudAdapter, type IEXCloudOptions } from "./iex-cloud.js";
+export { PolygonIOAdapter, type PolygonIOOptions } from "./polygon-io.js";
+export { TiingoAdapter, type TiingoOptions } from "./tiingo.js";
 export { type FetchLike } from "../internal/http.js";

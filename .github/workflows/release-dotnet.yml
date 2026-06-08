@@ -26,7 +26,7 @@ jobs:
       run:
         working-directory: csharp
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: verify VERSION matches tag
         run: |
@@ -48,7 +48,7 @@ jobs:
       - run: dotnet pack -c Release --no-build -p:Version=${{ env.PKG_VERSION }} -o ./artifacts
 
       - name: login to NuGet via OIDC
-        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # v1.1.0
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
         id: nuget-login
         with:
           # NuGet's trusted-publisher user lookup is CASE-SENSITIVE and must

@@ -22,7 +22,7 @@ RUN dotnet restore \
 # Chiseled runtime: non-root `app` user (uid 1654), no shell, minimal surface.
 # .NET 10 publishes noble / resolute chiseled variants; jammy (Ubuntu 22.04)
 # was NOT cut for .NET 10 — only .NET 8/9. Use noble (24.04 LTS) here.
-FROM mcr.microsoft.com/dotnet/runtime:10.0-noble-chiseled-extra@sha256:e94f025683507f6723196a6953f51a520e2b9c6114b2f5a7114ff3fa065dfbd2 AS runtime
+FROM mcr.microsoft.com/dotnet/runtime:10.0-noble-chiseled-extra@sha256:f1065ae889fa4328c919f09d296d144d09d51bf0320206744e37cbf29b474d25 AS runtime
 
 WORKDIR /app
 COPY --from=build /out ./

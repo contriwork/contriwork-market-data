@@ -2,7 +2,7 @@
 # hadolint global ignore=DL3018
 
 # ---- build stage ----------------------------------------------------------
-FROM node:24-bookworm-slim@sha256:03eae3ef7e88a9de535496fb488d67e02b9d96a063a8967bae657744ecd513f2 AS build
+FROM node:26-bookworm-slim@sha256:d2ec0a1766c01dad04a185c2d5558b0adace167a7f1758ce80f0017698431d06 AS build
 
 WORKDIR /app
 
@@ -19,7 +19,7 @@ RUN pnpm build \
  && pnpm prune --prod --ignore-scripts
 
 # ---- runtime stage --------------------------------------------------------
-FROM node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06dbdfc94f AS runtime
+FROM node:26-alpine@sha256:e71ac5e964b9201072425d59d2e876359efa25dc96bb1768cb73295728d6e4ea AS runtime
 
 ENV NODE_ENV=production
 
